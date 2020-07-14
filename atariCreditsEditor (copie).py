@@ -4,7 +4,9 @@
 import wordProcessor
 import atadisk as atadisk
 import sys
-import gui
+from dump import *
+import Tkinter as tk
+import tkFont as tkFont
 
 NB_COLS = 40
 EMPTY = unicode("")
@@ -135,9 +137,8 @@ def asciiToScreen(text):
 def readPcText(fname):
     with open(fname, "r") as fp:
         text = fp.read(-1).decode("utf-8")
-    return text
-    #~ formated_text = wordProcessor.TEXT_BUFFER(text, cols=NB_COLS).getFormatedText()
-    #~ return formated_text
+    formated_text = wordProcessor.TEXT_BUFFER(text, cols=NB_COLS).getFormatedText()
+    return formated_text
 
 def loadAtariText(fname, disk):
     print fname
@@ -145,35 +146,7 @@ def loadAtariText(fname, disk):
     formated_text = screenToAscii(text)
     return formated_text
     
-def formatAtariText(text):
-    formated_text = wordProcessor.TEXT_BUFFER(text, cols=NB_COLS).getFormatedText()
-    return formated_text
-
 if __name__ == "__main__":
-
-    hooks = {
-        'screenToAscii':screenToAscii,
-        'asciiToScreen':asciiToScreen,
-        'readPcText':readPcText,
-        'formatAtariText':formatAtariText}
-
-    window = gui.getWindow(hooks)
-    
-    #~ text = window.hooks['readPcText']("./text/utest.utf")
-    #~ gui.setRawText(window.raw_editor, text)
-
-    
-    
-    #~ raw_text = readPcText("./text/utest.utf")
-    #~ ata_text = readPcText("./text/utest.utf")
-    #~ gui.setAtariText(window.ata_window.ata_editor, ata_text)
-    #~ gui.setRawText(window.raw_editor, ata_text)
-    window.mainloop()
-
-
-
-    sys.exit(123)
-
 
     disk = atadisk.VIRTUAL_DISK("./ressource/CREDITS")
     #~ sys.stdout.write(disk.directory())

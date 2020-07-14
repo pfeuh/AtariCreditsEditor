@@ -34,15 +34,19 @@ class LINE():
         if text != None:
             text = text.replace(CHAR_CR, EMPTY)
             if "\<>" in text:
+                sys.stdout.write('+')
                 text = text.replace("\<>", EMPTY)
                 self.__mode = FORMAT_JUSTIFY
             if "\><" in text:
+                sys.stdout.write('-')
                 text = text.replace("\><", EMPTY)
                 self.__mode = FORMAT_CENTER
             if "\<" in text:
+                sys.stdout.write('*')
                 text = text.replace("\<", EMPTY)
                 self.__mode = FORMAT_LEFT
             if "\>" in text:
+                sys.stdout.write('/')
                 text = text.replace("\>", EMPTY)
                 self.__mode = FORMAT_RIGHT
 

@@ -1,0 +1,43 @@
+\><*************************
+\><* ATARI CREDITS MANAGER *    
+\><*******C.1989 P.FALLER***    
+                                        
+NOTA : Chargez la police "ACCENTUE" pour lire le présent manuel.                 
+                                        
+\><*
+\><* *
+                                        
+\<>____Ce programme gère 4 pages de générique, indépendantes les unes des autres. On peut les sauver sur disque et les récupérer. On peut aussi changer de police de caractères et en choisir une sur le disque.                           
+
+\><*
+\><* *
+
+\<>____Le clavier est en QWERTY mais permet quand même l'accentuation française par le biais de la police "ACCENTUE". Pour obtenir un caractère accentué, il faut combiner la touche CONTROL avec une autre touche alphanumérique, voici les principales:                            
+
+CTRL + A ==> ù________CTRL + B ==> Ñ    
+CTRL + C ==> É________CTRL + D ==> ç    
+CTRL + E ==> ô________CTRL + F ==> ò    
+CTRL + G ==> ì________CTRL + H ==> £    
+CTRL + I ==> ï________CTRL + J ==> ü    
+CTRL + K ==> ä________CTRL + L ==> Ö    
+CTRL + M ==> ú________CTRL + N ==> ó    
+CTRL + O ==> ö________CTRL + P ==> Ü    
+CTRL + Q ==> å________CTRL + R ==> û    
+CTRL + S ==> î________CTRL + T ==> é    
+CTRL + U ==> è________CTRL + V ==> ñ    
+CTRL + W ==> ê________CTRL + X ==> ā    
+CTRL + Y ==> à________CTRL + Z ==> Ā    
+
+\><*
+\><* *
+
+\<>____Cette police accentuée est la recopie (plus ou moins) fidèle de celle de votre Atari, une description en est faite dans sa notice.
+
+\><*
+\><* *
+
+\<>____Comme un texte accentué est relativement pénible à saisir sur un vrai Atari 8 bits, une application a été développée sur PC pour le faire plus confortablement, l'Atari ne servant alors plus qu'à effectuer le(s) générique(s).
+
+\><*
+\><* *
+
