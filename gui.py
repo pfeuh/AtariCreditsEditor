@@ -6,10 +6,14 @@ NB_COLS = 40 #TODO: redondant at the moment
 ATARI_BLUE = "#4992B9"
 ATARI_WHITE = "#e0e0e0"
 ATARI_FONTNAME = "Atari Classic Int"
+ATARI_DISK = None
+ATARI_DISK_FILETYPES=[("Atari 800 image file", "*"),("All files", "*.*"),]
+LAST_ATARI_DISK_FNAME = "./ressource/TITREUSE"
+ATARI_DIR_NB_COLS = 12
+ATARI_FILENAME = "NONAME"
 
 RAW_FONTNAME = "DejaVu Sans Mono"
 RAW_FILETYPES = [("All files", "*.*"), ("ascii credits", "*.txt"), ("extended credits", "*.utf")]
-
 LAST_FILE_FNAME = "./text/noname.utf"
 
 import sys
@@ -40,6 +44,24 @@ else:
     gui_fd = gui
     gui_font = gui
 
+class TEMP_TEXT(gui.Toplevel):
+    def __init__(self, container, *args, **kwds):
+        gui.Toplevel.__init__(self, container)
+        self.editor = gui.Text(self, **kwds)
+        self.editor.grid()
+        if len(args):
+            self.setRawText(args[0])
+        if len(args) > 1:
+            self.title(args[1])
+        self.bind("<FocusOut>", self.close)
+
+    def setRawText(self, text):
+        self.editor.delete('1.0', 'end')
+        self.editor.insert("end", text)
+        
+    def close(self, event=None):
+        self.destroy()
+
 def setAtariText(editor, text):
     editor.delete('1.0', 'end')
     for x in range(0, len(text), NB_COLS):
@@ -62,9 +84,36 @@ def getRawEditor(window):
     raw_editor.grid(column=1,row=0)
     return raw_editor
 
+def cmdAtariMountDisk(window):
+    global LAST_ATARI_DISK_FNAME, ATARI_DISK
+    filetypes=[("Atari 800 image file", "*.*"),]
+    title="select an Atari disk image file to open"
+    initialfile = LAST_ATARI_DISK_FNAME
+    sys.stdout.write("-%s-\n"%initialfile)   
+    initialdir = os.path.dirname(LAST_ATARI_DISK_FNAME)
+    fname = gui_fd.askopenfilename(title=title, parent=window, filetypes=ATARI_DISK_FILETYPES, initialfile=initialdir, initialdir=initialdir)
+    if not fname in ("", None):
+        if type(fname) != tuple:
+            LAST_ATARI_DISK_FNAME = fname
+            ATARI_DISK = window.hooks['mountAtariDisk'](fname)
+
+def cmdAtariFileList(window):
+    if ATARI_DISK != None:
+        fnames = window.hooks['getAtariDiskDirectory'](ATARI_DISK)
+        ata_font = gui_font.Font(family=ATARI_FONTNAME, size=16)
+        TEMP_TEXT(window, "\n".join(fnames), os.path.basename(LAST_ATARI_DISK_FNAME), bg=ATARI_BLUE, fg=ATARI_WHITE, font=ata_font, width=ATARI_DIR_NB_COLS)
+
+def cmdLoadAtariFile(window):
+    global ATARI_FILENAME
+    if ATARI_DISK != None:
+        fname = gui_sd.askstring(os.path.basename(LAST_ATARI_DISK_FNAME), "Enter credits text name", initialvalue=ATARI_FILENAME)
+        if fname in window.hooks['getAtariDiskDirectory'](ATARI_DISK):
+            ATARI_FILENAME = fname
+            text = window.hooks['screenToUnicode'](ATARI_DISK.readFile(fname))
+            setAtariText(window.ata_window.ata_editor, text)
+
 def cmdLoad(window):
     global LAST_FILE_FNAME
-    filetypes=[("All files", "*.*"), ("ascii credits", "*.txt"), ("extended credits", "*.utf")]
     title="select a file to open"
     initialfile = LAST_FILE_FNAME
     sys.stdout.write("-%s-\n"%initialfile)   
@@ -104,10 +153,10 @@ def getMenu(window):
     menuata = gui.Menu(tearoff=0)
     menuata.add_command(label="Refresh text", command=lambda window=window:cmdRefreshText(window))
     menuata.add_separator()
-    menuata.add_command(label="Mount disk")
-    menuata.add_command(label="Directory")
+    menuata.add_command(label="Mount disk", command=lambda window=window:cmdAtariMountDisk(window))
+    menuata.add_command(label="Directory", command=lambda window=window:cmdAtariFileList(window))
+    menuata.add_command(label="Load file", command=lambda window=window:cmdLoadAtariFile(window))
     menuata.add_command(label="Save file")
-    menuata.add_command(label="Show file")
     menu.add_cascade(label="Atari 800", menu=menuata)
 
     return menu

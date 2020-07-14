@@ -529,6 +529,9 @@ class DISK():
         dir.append("%03u free sectors"%self.readSector(ATARI_VTOC).getNbFreeSectors())
         return '\n'.join(dir)
 
+    def getDirectory(self, verbose=0):
+        return [entry.getFilename() for entry in self.getUsedEntries()]
+
     def readFile(self, fname):
         entry = self.getEntryByName(fname)
         if entry == None:
@@ -706,6 +709,14 @@ class VIRTUAL_DISK(DISK):
         return "<VIRTUAL DISK>"
 
 if __name__ == "__main__":
+    
+    import sys
+    
+    disk = VIRTUAL_DISK("./ressource/TITREUSE")
+    print disk.getDirectory()
+    
+    
+    sys.exit(124)
     
     import sys
     import shutil

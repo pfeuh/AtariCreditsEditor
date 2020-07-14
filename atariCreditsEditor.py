@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import wordProcessor
-import atadisk as atadisk
+import atadisk
 import sys
 import gui
 
@@ -10,7 +10,7 @@ NB_COLS = 40
 EMPTY = unicode("")
 CHAR_SPACE = " "
 
-SCREEN_TO_ASCII = [
+SCREEN_TO_UNICODE = [
     u' ', u'!', u'"', u'#', u'$', u'%', u'&', u"'", u'(', u')', u'*', u'+', u',', u'-', u'.', u'/', 
     u'0', u'1', u'2', u'3', u'4', u'5', u'6', u'7', u'8', u'9', u':', u';', u'<', u'=', u'>', u'?',
     u'@', u'A', u'B', u'C', u'D', u'E', u'F', u'G', u'H', u'I', u'J', u'K', u'L', u'M', u'N', u'O', 
@@ -53,13 +53,13 @@ ASCII_TO_SCREEN = {
     't':116, 'u':117, 'v':118, 'w':119, 
     'x':120, 'y':121, 'z':122, }
 
-def screenToAscii(text,encode=None):
+def screenToUnicode(text,encode=None):
     ret_text  = EMPTY
     for car_num, car in enumerate(text):
         index = ord(car)
         assert index < 256
         if index < 128:
-            car = SCREEN_TO_ASCII[index]
+            car = SCREEN_TO_UNICODE[index]
             if index and (car == CHAR_SPACE):
                 # not implemented or accentued
                 if index == 0x41:
@@ -136,71 +136,33 @@ def readPcText(fname):
     with open(fname, "r") as fp:
         text = fp.read(-1).decode("utf-8")
     return text
-    #~ formated_text = wordProcessor.TEXT_BUFFER(text, cols=NB_COLS).getFormatedText()
-    #~ return formated_text
 
 def loadAtariText(fname, disk):
     print fname
     text = disk.readFile(fname)
-    formated_text = screenToAscii(text)
+    formated_text = screenToUnicode(text)
     return formated_text
     
 def formatAtariText(text):
     formated_text = wordProcessor.TEXT_BUFFER(text, cols=NB_COLS).getFormatedText()
     return formated_text
 
+def mountAtariDisk(fname):
+    disk = atadisk.VIRTUAL_DISK(fname)
+    return disk
+
+def getAtariDiskDirectory(disk):
+    return disk.getDirectory()
+
 if __name__ == "__main__":
 
     hooks = {
-        'screenToAscii':screenToAscii,
-        'asciiToScreen':asciiToScreen,
         'readPcText':readPcText,
+        'loadAtariText':loadAtariText,
+        'mountAtariDisk':mountAtariDisk,
+        'getAtariDiskDirectory':getAtariDiskDirectory,
+        'screenToUnicode':screenToUnicode,
         'formatAtariText':formatAtariText}
 
     window = gui.getWindow(hooks)
-    
-    #~ text = window.hooks['readPcText']("./text/utest.utf")
-    #~ gui.setRawText(window.raw_editor, text)
-
-    
-    
-    #~ raw_text = readPcText("./text/utest.utf")
-    #~ ata_text = readPcText("./text/utest.utf")
-    #~ gui.setAtariText(window.ata_window.ata_editor, ata_text)
-    #~ gui.setRawText(window.raw_editor, ata_text)
     window.mainloop()
-
-
-
-    sys.exit(123)
-
-
-    disk = atadisk.VIRTUAL_DISK("./ressource/CREDITS")
-    #~ sys.stdout.write(disk.directory())
-
-    #~ text = readPcText("./text/msieurReflex.utf")
-    text = readPcText("./text/utest.utf")
-    #~ text = loadAtariText("AIDE.ECR", disk)
-
-    window = tk.Tk()
-    #~ font_name = "DejaVu Sans Mono"
-    font_name = "Atari Classic Int"    
-    window.title(font_name)
-    font = tkFont.Font(family=font_name, size=16)#, weight='bold')
-    editor = tk.Text(window, font=font, width=NB_COLS + 4, padx=0, pady=0, wrap=tk.NONE, bg="#4992B9", fg="#e0e0e0")
-    editor.grid(column=0,row=0)
-    raw_font = tkFont.Font(size=12)
-    raw_editor = tk.Text(window, width=NB_COLS, font=raw_font)
-    raw_editor.grid(column=1,row=0)
-    #~ editor.insert("end", text)
-    for x in range(0, len(text), NB_COLS):
-        editor.insert("end", "  " + text[x: x + NB_COLS])
-        editor.insert("end", "\n")
-    window.mainloop()
-
-    # DejaVu Sans Mono
-    # Tlwg Typist
-    # Noto Sans Mono CJK SC
-
-    
-    
