@@ -11,15 +11,18 @@ CHAR_SPACE = " "
 
 if __name__ == "__main__":
 
-    with open("./text/msieurReflex.utf", "r") as fp:
+    with open("./text/msieurReflex.txt", "r") as fp:
         text = fp.read(-1).decode("utf-8")
-    print type(text)
+        sys.stdout.write(text)        
+        #~ text = fp.read(-1)
+        #~ sys.stdout.write(dump(text))        
+    #~ print type(text)
     
-    window = tk.Tk()
-    editor = tk.Text(window)
-    editor.grid()
-    editor.insert("end", text)
-    window.mainloop()
+    #~ window = tk.Tk()
+    #~ editor = tk.Text(window)
+    #~ editor.grid()
+    #~ editor.insert("end", text)
+    #~ window.mainloop()
     
     #~ print text
         
