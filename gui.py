@@ -1,6 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import sys
+import os
+import dump
+import shutil
+
 NB_COLS = 40 #TODO: redondant at the moment
 
 ATARI_BLUE = "#4992B9"
@@ -8,20 +13,22 @@ ATARI_WHITE = "#e0e0e0"
 ATARI_FONTNAME = "Atari Classic Int"
 ATARI_DISK = None
 ATARI_DISK_FILETYPES=[("Atari 800 image file", "*"),("All files", "*.*"),]
-LAST_ATARI_DISK_FNAME = "./ressource/TITREUSE"
+CURRENT_ATARI_DISK_FNAME = "./ressource/TITREUSE"
 ATARI_DIR_NB_COLS = 12
 ATARI_DIR_VB_NB_COLS = 18
-ATARI_FILENAME = "NONAME"
+CURRENT_ATARI_FILENAME = "NONAME"
 
 RAW_FONTNAME = "DejaVu Sans Mono"
 RAW_FILETYPES = [("All files", "*.*"), ("ascii credits", "*.txt"), ("extended credits", "*.utf")]
 RAW_EXT = ".utf"
-LAST_FILE_FNAME = "./text/noname.utf"
+DEFAULT_FNAME = "./text/noname.utf"
+CURRENT_FILE_FNAME = DEFAULT_FNAME
 LEFT_MARGIN = 2
 RIGHT_MARGIN = 2
 
-import sys
-import os
+CONFIG = (CURRENT_FILE_FNAME, CURRENT_ATARI_DISK_FNAME)
+
+DEBUG = "-debug" in sys.argv
 
 def getPythonInfoText():
     words = sys.version.split()
@@ -66,6 +73,55 @@ class TEMP_TEXT(gui.Toplevel):
     def close(self, event=None):
         self.destroy()
 
+def refreshInfo(window):
+    global CURRENT_FILE_FNAME
+    window.title(os.path.basename(CURRENT_FILE_FNAME))
+
+def loadPcText(window, fname):
+    global CURRENT_FILE_FNAME
+    text = window.hooks['readPcText'](fname)
+    setRawText(window.raw_editor, text)
+    CURRENT_FILE_FNAME = fname
+    refreshInfo(window)
+
+def mountAtariDisk(window, fname):
+    global CURRENT_ATARI_DISK_FNAME, ATARI_DISK
+    ATARI_DISK = window.hooks['mountAtariDisk'](fname)
+    CURRENT_ATARI_DISK_FNAME = fname
+    if DEBUG:
+        sys.stdout.write("disk %s mounted!\n"%fname)
+
+def getConfname():
+    return os.path.splitext(sys.argv[0])[0] + ".cfg" 
+
+def saveConf(window):
+    with open(getConfname(), "w") as fp:
+        for item in CONFIG:
+            fp.write(item.encode('utf8'))
+            fp.write('\n')
+
+def loadConf(window):
+    values = []
+    with open(getConfname(), "r") as fp:
+        for item in CONFIG:
+            values.append(fp.readline().strip().decode('utf8'))
+    # CURRENT_FILE_FNAME
+    fname = values[0]
+    try:
+        loadPcText(window, fname)
+        if DEBUG:
+            sys.stdout.write("text %s loaded!\n"%fname)
+    except:
+        if DEBUG:
+            sys.stdout.write("Can't load %s\n"%fname)
+    #CURRENT_ATARI_DISK_FNAME
+    fname = values[1]
+    try:
+        mountAtariDisk(window, fname)
+    except:
+        if DEBUG:
+            sys.stdout.write("Can't mount Atari disk %s!\n"%fname)
+    
 def setAtariText(editor, text):
     editor.delete('1.0', 'end')
     for x in range(0, len(text), NB_COLS):
@@ -88,47 +144,52 @@ def getRawEditor(window):
     raw_editor.grid(column=1,row=0)
     return raw_editor
 
-def cmdLoad(window):
-    global LAST_FILE_FNAME
+def cmdNew(window):
+    global CURRENT_FILE_FNAME
     title="select a file to open"
-    initialfile = LAST_FILE_FNAME
-    initialdir = os.path.dirname(LAST_FILE_FNAME)
+    setRawText(window.raw_editor, unicode())
+    CURRENT_FILE_FNAME = DEFAULT_FNAME
+    refreshInfo(window)
+
+def cmdLoad(window):
+    global CURRENT_FILE_FNAME
+    title="select a file to open"
+    initialfile = CURRENT_FILE_FNAME
+    initialdir = os.path.dirname(CURRENT_FILE_FNAME)
     fname = gui_fd.askopenfilename(title=title, parent=window, filetypes=RAW_FILETYPES, initialfile=initialdir, initialdir=initialdir)
     if not fname in ("", None):
         if type(fname) != tuple:
-            LAST_FILE_FNAME = fname
-            text = window.hooks['readPcText'](fname)
-            setRawText(window.raw_editor, text)
-            window.title(os.path.basename(fname))
+            loadPcText(window, fname)
 
 def cmdSave(window, fname=None, keep_name=True):
-    global LAST_FILE_FNAME
+    global CURRENT_FILE_FNAME
     if fname == None:
-        fname = LAST_FILE_FNAME
+        fname = CURRENT_FILE_FNAME
     text = window.raw_editor.get('1.0', 'end')
     with open(fname, "w") as fp:
         fp.write(text.encode('utf8'))
     if not keep_name:
-        LAST_FILE_FNAME = fname
+        CURRENT_FILE_FNAME = fname
         window.title(os.path.basename(fname))
      
 def cmdSaveAs(window):
-    global LAST_FILE_FNAME
-    dirname = os.path.dirname(LAST_FILE_FNAME)
-    fname = gui_fd.asksaveasfilename(title="Select a SAVE AS name", initialdir=dirname, initialfile=LAST_FILE_FNAME, filetypes=RAW_FILETYPES, defaultextension=RAW_EXT)
+    global CURRENT_FILE_FNAME
+    dirname = os.path.dirname(CURRENT_FILE_FNAME)
+    fname = gui_fd.asksaveasfilename(title="Select a SAVE AS name", initialdir=dirname, initialfile=CURRENT_FILE_FNAME, filetypes=RAW_FILETYPES, defaultextension=RAW_EXT)
     if not fname in ("", None):
         if type(fname) != tuple:
             cmdSave(window, fname, keep_name=False)
 
 def cmdSaveCopyAs(window):
-    global LAST_FILE_FNAME
-    dirname = os.path.dirname(LAST_FILE_FNAME)
-    fname = gui_fd.asksaveasfilename(title="Select a SAVE AS name", initialdir=dirname, initialfile=LAST_FILE_FNAME, filetypes=RAW_FILETYPES, defaultextension=RAW_EXT)
+    global CURRENT_FILE_FNAME
+    dirname = os.path.dirname(CURRENT_FILE_FNAME)
+    fname = gui_fd.asksaveasfilename(title="Select a SAVE AS name", initialdir=dirname, initialfile=CURRENT_FILE_FNAME, filetypes=RAW_FILETYPES, defaultextension=RAW_EXT)
     if not fname in ("", None):
         if type(fname) != tuple:
             cmdSave(window, fname, keep_name=True)
 
 def cmdQuit(window):
+    #~ saveConf(window)
     window.quit()
     
 def cmdRefreshAtariScreen(window):
@@ -137,32 +198,33 @@ def cmdRefreshAtariScreen(window):
     setAtariText(window.ata_window.ata_editor, formated_text)
 
 def cmdAtariMountDisk(window):
-    global LAST_ATARI_DISK_FNAME, ATARI_DISK
+    global CURRENT_ATARI_DISK_FNAME, ATARI_DISK
     title="select an Atari disk image to open"
-    initialfile = LAST_ATARI_DISK_FNAME
-    initialdir = os.path.dirname(LAST_ATARI_DISK_FNAME)
+    initialfile = CURRENT_ATARI_DISK_FNAME
+    initialdir = os.path.dirname(CURRENT_ATARI_DISK_FNAME)
     fname = gui_fd.askopenfilename(title=title, parent=window, filetypes=ATARI_DISK_FILETYPES, initialfile=initialdir, initialdir=initialdir)
     if not fname in ("", None):
         if type(fname) != tuple:
-            LAST_ATARI_DISK_FNAME = fname
-            ATARI_DISK = window.hooks['mountAtariDisk'](fname)
+            mountAtariDisk(window, fname)
+            #~ CURRENT_ATARI_DISK_FNAME = fname
+            #~ ATARI_DISK = window.hooks['mountAtariDisk'](fname)
 
 def cmdAtariCreateDisk(window):
-    global LAST_ATARI_DISK_FNAME, ATARI_DISK
+    global CURRENT_ATARI_DISK_FNAME, ATARI_DISK
     title="select an Atari disk image to create"
-    initialdir = os.path.dirname(LAST_ATARI_DISK_FNAME)
+    initialdir = os.path.dirname(CURRENT_ATARI_DISK_FNAME)
     fname = gui_fd.askopenfilename(title=title, parent=window, filetypes=ATARI_DISK_FILETYPES, initialfile=initialdir, initialdir=initialdir)
-    fname = gui_fd.asksaveasfilename(title="title", initialdir=initialdir, initialfile=LAST_FILE_FNAME, filetypes=ATARI_DISK_FILETYPES)
+    fname = gui_fd.asksaveasfilename(title="title", initialdir=initialdir, initialfile=CURRENT_FILE_FNAME, filetypes=ATARI_DISK_FILETYPES)
     if not fname in ("", None):
         if type(fname) != tuple:
-            LAST_ATARI_DISK_FNAME = fname
+            CURRENT_ATARI_DISK_FNAME = fname
             ATARI_DISK = window.hooks['createAtariDisk'](fname)
 
 def cmdAtariFileList(window):
     if ATARI_DISK != None:
         fnames = window.hooks['getAtariDiskDirectory'](ATARI_DISK)
         ata_font = gui_font.Font(family=ATARI_FONTNAME, size=16)
-        TEMP_TEXT(window, "\n".join(fnames), os.path.basename(LAST_ATARI_DISK_FNAME), bg=ATARI_BLUE, fg=ATARI_WHITE, font=ata_font, width=ATARI_DIR_NB_COLS)
+        TEMP_TEXT(window, "\n".join(fnames), os.path.basename(CURRENT_ATARI_DISK_FNAME), bg=ATARI_BLUE, fg=ATARI_WHITE, font=ata_font, width=ATARI_DIR_NB_COLS)
     else:
         gui_mb.showerror("Atari i/o error", "no Atari disk mounted!")
         
@@ -170,18 +232,18 @@ def cmdAtariVerboseFileList(window):
     if ATARI_DISK != None:
         fnames = window.hooks['getAtariDiskVerboseDirectory'](ATARI_DISK)
         ata_font = gui_font.Font(family=ATARI_FONTNAME, size=16)
-        TEMP_TEXT(window, fnames, os.path.basename(LAST_ATARI_DISK_FNAME), bg=ATARI_BLUE, fg=ATARI_WHITE, font=ata_font, width=ATARI_DIR_VB_NB_COLS)
+        TEMP_TEXT(window, fnames, os.path.basename(CURRENT_ATARI_DISK_FNAME), bg=ATARI_BLUE, fg=ATARI_WHITE, font=ata_font, width=ATARI_DIR_VB_NB_COLS)
     else:
         gui_mb.showerror("Atari i/o error", "no Atari disk mounted!")
         
 def cmdLoadAtariFile(window):
-    global ATARI_FILENAME
+    global CURRENT_ATARI_FILENAME
     if ATARI_DISK != None:
-        fname = gui_sd.askstring(os.path.basename(LAST_ATARI_DISK_FNAME), "Enter name of credits text to load", initialvalue=ATARI_FILENAME)
+        fname = gui_sd.askstring(os.path.basename(CURRENT_ATARI_DISK_FNAME), "Enter name of credits text to load", initialvalue=CURRENT_ATARI_FILENAME)
         if fname == None or fname == '':
             return
         if fname in window.hooks['getAtariDiskDirectory'](ATARI_DISK):
-            ATARI_FILENAME = fname
+            CURRENT_ATARI_FILENAME = fname
             text = window.hooks['screencodeToUnicode'](ATARI_DISK.readFile(fname))
             setAtariText(window.ata_window.ata_editor, text)
         else:
@@ -190,9 +252,9 @@ def cmdLoadAtariFile(window):
         gui_mb.showerror("Atari i/o error", "no Atari disk mounted!")
 
 def cmdSaveAtariFile(window):
-    global ATARI_FILENAME
+    global CURRENT_ATARI_FILENAME
     if ATARI_DISK != None:
-        fname = gui_sd.askstring(os.path.basename(LAST_ATARI_DISK_FNAME), "Enter name of credits text to save", initialvalue=ATARI_FILENAME)
+        fname = gui_sd.askstring(os.path.basename(CURRENT_ATARI_DISK_FNAME), "Enter name of credits text to save", initialvalue=CURRENT_ATARI_FILENAME)
         if fname == None or fname == '':
             return
         if fname in window.hooks['getAtariDiskDirectory'](ATARI_DISK):
@@ -209,12 +271,35 @@ def cmdSaveAtariFile(window):
     else:
         gui_mb.showerror("Atari i/o error", "no Atari disk mounted!")
             
+def cmdDebugConfig(window):
+    sys.stdout.write("-------------------------------------------\n")
+    sys.stdout.write("CURRENT_FILE_FNAME %s\n"%CURRENT_FILE_FNAME)
+    sys.stdout.write("CURRENT_ATARI_DISK_FNAME %s\n"%CURRENT_ATARI_DISK_FNAME)
+    sys.stdout.write("ATARI_DISK %s\n"%str(ATARI_DISK))
+
+def cmdDebugNewCredits(window):
+    shutil.copyfile("/home/pfeuh/TITREUSE", "/home/pfeuh/CREDITS")
+
+def cmdDebugDumpAtariScreen(window):
+    global CURRENT_ATARI_FILENAME
+    if ATARI_DISK != None:
+        fname = gui_sd.askstring(os.path.basename(CURRENT_ATARI_DISK_FNAME), "Enter name of credits text to load", initialvalue=CURRENT_ATARI_FILENAME)
+        if fname == None or fname == '':
+            return
+        if fname in window.hooks['getAtariDiskDirectory'](ATARI_DISK):
+            sys.stdout.write(dump.dump(ATARI_DISK.readFile(fname), nb_columns=40))
+        else:
+            gui_mb.showerror("Atari i/o error", "file %s not found!"%fname, parent=window)
+    else:
+        gui_mb.showerror("Atari i/o error", "no Atari disk mounted!")
+
+
 def getMenu(window):
     menu = gui.Menu(window, fg="white", bg="black")
 
     # MENU FILES
     menufile = gui.Menu(tearoff=0)
-    menufile.add_command(label="New")
+    menufile.add_command(label="New", command=lambda window=window:cmdNew(window))
     menufile.add_command(label="Load", command=lambda window=window:cmdLoad(window))
     menufile.add_command(label="Save", command=lambda window=window:cmdSave(window))
     menufile.add_command(label="Save as...", command=lambda window=window:cmdSaveAs(window))
@@ -242,6 +327,13 @@ def getMenu(window):
     menuata.add_command(label="Save file", command=lambda window=window:cmdSaveAtariFile(window))
     menu.add_cascade(label="Atari 800", menu=menuata)
 
+    if DEBUG:
+        menudbug = gui.Menu(tearoff=0)
+        menudbug.add_command(label="Config", command=lambda window=window:cmdDebugConfig(window))
+        menudbug.add_command(label="New Atari work disk", command=lambda window=window:cmdDebugNewCredits(window))
+        menudbug.add_command(label="Dump Atari screen", command=lambda window=window:cmdDebugDumpAtariScreen(window))
+        menu.add_cascade(label="Debug", menu=menudbug)
+
     return menu
     
 def getWindow(hooks):
@@ -252,6 +344,7 @@ def getWindow(hooks):
     window.ata_window = gui.Toplevel(window)
     window.ata_window.title(os.path.splitext(os.path.basename(sys.argv[0]))[0])
     window.ata_window.ata_editor = getAtariEditor(window.ata_window)
+    loadConf(window)
     return window
 
 if __name__ == "__main__":

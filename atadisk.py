@@ -706,7 +706,7 @@ class VIRTUAL_DISK(DISK):
         fp.close()
         
     def __str__(self):
-        return "<VIRTUAL DISK>"
+        return "<VIRTUAL DISK> %s"%self.fname
 
 if __name__ == "__main__":
     
