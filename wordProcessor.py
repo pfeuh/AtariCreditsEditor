@@ -3,6 +3,9 @@
 
 import sys
 
+# TODO: there is a bug in justifying both sides... Often just before last line
+# TODO: Make some tests on SCREEN_COLS
+
 EMPTY = ""
 CHAR_SPACE = " "
 CHAR_UNDERSCORE = "_"
@@ -22,10 +25,16 @@ FORMAT_CENTER = 3
 FORMAT_JUSTIFY = 4
 
 DEBUG = "-debug" in sys.argv
-
 SCREEN_COLS = 40
 SCREEN_ROWS = 25
 SCREEN_TAB = 4
+
+for index, arg in enumerate(sys.argv):
+    if arg == "-nb_cols":
+        SCREEN_COLS = int(sys.argv[index+1])
+
+def getNbCols():
+    return SCREEN_COLS
 
 class LINE():
     def __init__(self, text=None):
@@ -174,7 +183,7 @@ class LINE():
 class TEXT_BUFFER():
     def __init__(self, text=None, cols=SCREEN_COLS, rows=SCREEN_ROWS, tab=SCREEN_TAB):
         self.__cols = cols
-        self.__rows = rows
+        self.__rows = rows # TODO: can delete, not used
         self.__tab = tab
         self.clear()
         if text != None:

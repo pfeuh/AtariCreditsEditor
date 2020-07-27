@@ -5,8 +5,10 @@ import sys
 import os
 import dump
 import shutil
+from wordProcessor import getNbCols
+NB_COLS = getNbCols()
 
-NB_COLS = 40 #TODO: redondant at the moment
+#~ NB_COLS = 40 #TODO: redondant at the moment
 
 ATARI_BLUE = "#4992B9"
 ATARI_WHITE = "#e0e0e0"
@@ -140,7 +142,7 @@ def getAtariEditor(window):
 
 def getRawEditor(window):
     raw_font = gui_font.Font(family=RAW_FONTNAME, size=12)
-    raw_editor = gui.Text(window, font=raw_font, width=NB_COLS, wrap="word")
+    raw_editor = gui.Text(window, font=raw_font, width=40, wrap="word")
     raw_editor.grid(column=1,row=0)
     return raw_editor
 
@@ -251,6 +253,22 @@ def cmdLoadAtariFile(window):
     else:
         gui_mb.showerror("Atari i/o error", "no Atari disk mounted!")
 
+# TODO: finish... or not
+#~ def cmdLoadAtariTextFile(window):
+    #~ global CURRENT_ATARI_FILENAME
+    #~ if ATARI_DISK != None:
+        #~ fname = gui_sd.askstring(os.path.basename(CURRENT_ATARI_DISK_FNAME), "Enter name of text file to load", initialvalue=CURRENT_ATARI_FILENAME)
+        #~ if fname == None or fname == '':
+            #~ return
+        #~ if fname in window.hooks['getAtariDiskDirectory'](ATARI_DISK):
+            #~ CURRENT_ATARI_FILENAME = fname
+            #~ text = window.hooks['screencodeToUnicode'](ATARI_DISK.readFile(fname))
+            #~ setAtariText(window.ata_window.ata_editor, text)
+        #~ else:
+            #~ gui_mb.showerror("Atari i/o error", "file %s not found!"%fname, parent=window)
+    #~ else:
+        #~ gui_mb.showerror("Atari i/o error", "no Atari disk mounted!")
+
 def cmdSaveAtariFile(window):
     global CURRENT_ATARI_FILENAME
     if ATARI_DISK != None:
@@ -324,6 +342,7 @@ def getMenu(window):
     menuata.add_command(label="Verbose directory", command=lambda window=window:cmdAtariVerboseFileList(window))
     menuata.add_separator()
     menuata.add_command(label="Load file", command=lambda window=window:cmdLoadAtariFile(window))
+    #~ menuata.add_command(label="Load textFile", command=lambda window=window:cmdLoadAtariTextFile(window))# TODO: finish... or not
     menuata.add_command(label="Save file", command=lambda window=window:cmdSaveAtariFile(window))
     menu.add_cascade(label="Atari 800", menu=menuata)
 

@@ -7,7 +7,6 @@ import atadisk
 import sys
 import gui
 
-NB_COLS = 40
 CHAR_SPACE = " "
 
 # TODO: Bug, CTRL-B should give ~N with ATARI files. Works fine with PC files.
@@ -16,6 +15,7 @@ CHAR_SPACE = " "
 # TODO: implement undo/redo for raw text
 # TODO: implement alert boxes for errors
 # TODO: make the atari screen read-only
+# TODO: BUG or not implemented code for load_save configuration
 
 def readPcText(fname):
     #return an unicode string from an utf-8 PC file
@@ -25,7 +25,7 @@ def readPcText(fname):
 
 def formatAtariText(text):
     # format a text with justification right, left, centered and both sides
-    formated_text = wordProcessor.TEXT_BUFFER(text, cols=NB_COLS).getFormatedText()
+    formated_text = wordProcessor.TEXT_BUFFER(text, cols=wordProcessor.SCREEN_COLS).getFormatedText()
     return formated_text
 
 def mountAtariDisk(fname):
@@ -39,16 +39,30 @@ def createAtariDisk(fname):
     return disk
 
 def getAtariDiskDirectory(disk):
-    # get atari disk image file list
+    # get atari disk image file list... as list
     return disk.getDirectory()
 
 def getAtariDiskVerboseDirectory(disk):
+    # get atari disk image file list and some extra info... as text
     return disk.directory()
 
 def formatAtariText(text):
-    # get atari disk image file list and some extra info as a text
-    formated_text = wordProcessor.TEXT_BUFFER(text, cols=NB_COLS).getFormatedText()
+    # return a text formatesd by user instructions (\<, \>n \<>, \><)
+    formated_text = wordProcessor.TEXT_BUFFER(text, cols=wordProcessor.SCREEN_COLS).getFormatedText()
     return formated_text
+
+# TODO: finish... or not
+#~ def getAtariText(text):
+    #~ # transcode atari atascii text to ascii text
+    #~ ret_text = ""
+    #~ for car in text:
+        #~ byte = ord(car)
+        #~ ascii = byte < 128
+        #~ byte &= 127
+        #~ if byte < 128:
+            #~ byte 
+    #~ formated_text = wordProcessor.TEXT_BUFFER(text, cols=wordProcessor.SCREEN_COLS).getFormatedText()
+    #~ return formated_text
 
 if __name__ == "__main__":
 
